@@ -1,0 +1,10 @@
+# Personal source material, kept out of the public repo
+M*todo de Fluxo de Caixa.md
+
+# Secrets
+.env*
+!.env.example
+
+# Dependencies and build output
+node_modules/
+.next/
