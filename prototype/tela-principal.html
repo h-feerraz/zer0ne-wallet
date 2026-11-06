@@ -1,0 +1,378 @@
+<title>zer0ne-wallet Tela Principal</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap">
+<style>
+/* PROTOTYPE - throwaway. Variants of the main screen, switchable via #d, #a, #c. Phone-first single column. */
+:root {
+  --bg: #fafafa; --surface: #ffffff; --fg: #18181b; --muted: #71717a; --line: #e4e4e7; --soft: #f4f4f5;
+  --primary: #18181b; --on-primary: #fafafa;
+  --green: #15803d; --green-bg: #dcfce7; --yellow: #a16207; --yellow-bg: #fef9c3; --red: #b91c1c; --red-bg: #fee2e2;
+  --font: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f0f11; --surface: #18181b; --fg: #fafafa; --muted: #a1a1aa; --line: #2e2e33; --soft: #232327;
+  --primary: #fafafa; --on-primary: #18181b;
+  --green: #4ade80; --green-bg: #14321f; --yellow: #facc15; --yellow-bg: #3a300a; --red: #f87171; --red-bg: #3f1616;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0f0f11; --surface: #18181b; --fg: #fafafa; --muted: #a1a1aa; --line: #2e2e33; --soft: #232327;
+  --primary: #fafafa; --on-primary: #18181b;
+  --green: #4ade80; --green-bg: #14321f; --yellow: #facc15; --yellow-bg: #3a300a; --red: #f87171; --red-bg: #3f1616;
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; line-height: 1.4; font-variant-numeric: tabular-nums; }
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
+#app { max-width: 460px; margin: 0 auto; padding-block: 16px 150px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 16px; }
+.demo { font-size: 12px; color: var(--muted); }
+.label { font-size: 13px; color: var(--muted); }
+.big { font-size: 48px; font-weight: 700; line-height: 1.05; letter-spacing: -0.03em; }
+.mid { font-size: 20px; font-weight: 600; }
+.row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.row > * { min-width: 0; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px; }
+.stack { display: grid; gap: 8px; }
+.sec { font-size: 14px; font-weight: 600; }
+.s-green { color: var(--green); } .s-yellow { color: var(--yellow); } .s-red { color: var(--red); }
+.b-green { background: var(--green-bg); color: var(--green); } .b-yellow { background: var(--yellow-bg); color: var(--yellow); } .b-red { background: var(--red-bg); color: var(--red); }
+.btn { background: var(--primary); color: var(--on-primary); border: 0; border-radius: 6px; padding: 12px 14px; font-weight: 600; min-height: 44px; }
+.btn-out { background: var(--surface); color: var(--fg); border: 1px solid var(--line); }
+.field { width: 100%; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 11px 12px; min-height: 44px; min-width: 0; }
+/* Launch row, shared by all variants */
+.lanc { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+.lanc + .lanc { border-top: 1px solid var(--line); }
+.chk { width: 28px; height: 28px; flex: none; border-radius: 50%; border: 2px solid var(--muted); background: none; display: grid; place-items: center; font-size: 14px; color: var(--on-primary); }
+.chk.on { background: var(--green); border-color: var(--green); }
+.lanc .nm { flex: 1; min-width: 0; }
+.tag { font-size: 12px; color: var(--muted); }
+.tag.late { color: var(--red); font-weight: 600; }
+.val { font-weight: 600; white-space: nowrap; }
+.in { color: var(--green); }
+/* A: timeline */
+.tl { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.tl-day { width: 100%; display: flex; align-items: center; gap: 10px; background: none; border: 0; border-top: 1px solid var(--line); padding: 12px 14px; text-align: left; min-height: 48px; }
+.tl-day.first { border-top: 0; }
+.dot { width: 10px; height: 10px; border-radius: 50%; flex: none; background: currentColor; }
+.tl-d { flex: 1; min-width: 0; }
+.tl-open { padding: 2px 14px 10px; background: var(--soft); }
+.month { padding: 8px 14px; background: var(--soft); font-size: 13px; font-weight: 600; border-top: 1px solid var(--line); }
+.fab { position: fixed; z-index: 5; right: max(16px, calc(50vw - 214px)); bottom: calc(68px + env(safe-area-inset-bottom, 0px)); width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: var(--on-primary); border: 0; font-size: 28px; box-shadow: 0 4px 14px rgb(0 0 0 / 0.3); }
+/* B: inbox */
+.alert { border-radius: 8px; padding: 12px 14px; font-weight: 500; }
+.bigin { font-size: 32px; font-weight: 700; text-align: left; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.tabs { position: fixed; z-index: 5; left: 0; right: 0; bottom: 0; padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); background: var(--surface); border-top: 1px solid var(--line); display: flex; justify-content: center; }
+.tabs button { flex: 1; max-width: 214px; background: none; border: 0; padding: 12px; color: var(--muted); font-weight: 600; min-height: 48px; }
+.tabs button.on { color: var(--fg); box-shadow: inset 0 2px 0 var(--fg); }
+.wk { display: grid; gap: 6px; }
+.bar { height: 8px; border-radius: 4px; background: var(--soft); overflow: hidden; }
+.bar i { display: block; height: 100%; background: currentColor; }
+/* C: calendar */
+.strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.strip .v { font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.cal .wd { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 2px; }
+.cell { aspect-ratio: 1 / 1.15; max-width: 100%; border: 0; border-radius: 6px; padding: 3px 1px; display: grid; align-content: space-between; justify-items: center; font-size: 13px; font-weight: 600; min-width: 0; }
+.cell small { font-size: 10px; font-weight: 500; }
+.cell.none { background: var(--soft); color: var(--muted); }
+.cell.sel { outline: 2px solid var(--fg); outline-offset: 1px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { flex: 1 0 auto; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; font-weight: 600; min-height: 44px; }
+/* D: switchable views */
+.seg-3 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.wcell { border: 0; border-radius: 6px; padding: 8px 1px; display: grid; gap: 6px; justify-items: center; font-size: 14px; font-weight: 600; min-width: 0; min-height: 104px; align-content: start; }
+.wcell small { font-size: 11px; font-weight: 500; }
+.wcell.none { background: var(--soft); color: var(--muted); }
+.wcell.sel { outline: 2px solid var(--fg); outline-offset: 1px; }
+.pips { display: flex; gap: 2px; flex-wrap: wrap; justify-content: center; }
+.pips i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+.navrow .btn { min-width: 44px; }
+/* Sheet */
+.scrim { position: fixed; inset: 0; z-index: 20; background: rgb(0 0 0 / 0.5); display: flex; align-items: flex-end; justify-content: center; }
+.sheet { width: 100%; max-width: 460px; background: var(--surface); border-radius: 12px 12px 0 0; padding-block: 16px calc(16px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 12px; }
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; background: var(--soft); padding: 4px; border-radius: 6px; }
+.seg button { background: none; border: 0; border-radius: 4px; padding: 8px 2px; font-size: 13px; font-weight: 500; min-height: 40px; }
+.seg button.on { background: var(--surface); font-weight: 700; }
+/* Switcher: visibly not part of the design */
+.switch { position: fixed; z-index: 10; left: 50%; transform: translateX(-50%); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 4px; background: #7c2d92; color: #fff; border-radius: 999px; padding: 4px; box-shadow: 0 4px 14px rgb(0 0 0 / 0.35); white-space: nowrap; font-size: 13px; font-weight: 600; max-width: calc(100vw - 16px); }
+.switch button { background: none; border: 0; color: #fff; min-width: 36px; height: 36px; border-radius: 999px; font-weight: 700; }
+.switch span { padding: 0 4px; overflow: hidden; text-overflow: ellipsis; }
+.state { position: fixed; z-index: 15; left: 8px; right: 8px; bottom: calc(58px + env(safe-area-inset-bottom, 0px)); max-width: 444px; margin: 0 auto; max-height: 45vh; overflow: auto; background: #2a1030; color: #f5e6fa; border-radius: 8px; padding: 10px; font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; }
+@media (prefers-reduced-motion: no-preference) { .sheet { animation: up .15s ease-out; } @keyframes up { from { transform: translateY(24px); } } }
+</style>
+
+<div id="app"></div>
+<div id="overlay"></div>
+
+<script>
+// PROTOTYPE - throwaway. In-memory state only; all figures are invented. Answers: how should the main screen be organized?
+const TODAY = new Date(2026, 10, 6);
+const BASE = 3800, PREVISTO = 43, LIMITE = PREVISTO * 7, MONTH_DAYS = 30, DAYS_LEFT = 25, SPENT_BEFORE = 190, WINDOW = 60;
+const VARIANTS = { d: "Combinada", a: "Linha do tempo", c: "Calendário" };
+const TEMPLATES = [
+  ["Academia", "saida", 99, 4], ["Salário", "entrada", 5000, 5], ["Economia", "economia", 500, 7], ["Energia", "saida", 180, 8],
+  ["Aluguel", "saida", 1500, 10], ["Fatura do cartão", "fatura", 450, 12], ["Internet", "saida", 120, 15],
+];
+const MS_DAY = 864e5;
+const items = [];
+[0, 1, 2].forEach((m) => TEMPLATES.forEach(([name, type, value, d]) => {
+  const off = Math.round((new Date(2026, 10 + m, d) - TODAY) / MS_DAY);
+  items.push({ id: items.length, name, type, value, off, confirmed: m === 0 && d === 5 });
+}));
+const state = {
+  variant: "d", calView: "mes", gastos: [{ desc: "Café", value: 10 }, { desc: "Almoço", value: 25 }], openDay: 0, tab: "hoje",
+  selDay: 0, calMonth: 0, sheet: false, sheetType: "Diário", showState: false,
+};
+
+// Domain rules from the interview
+const dateAt = (i) => new Date(2026, 10, 6 + i);
+const money = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+const short = (v) => { const a = Math.abs(v); const s = a >= 1000 ? (a / 1000).toFixed(1).replace(".", ",") + "k" : Math.round(a).toString(); return (v < 0 ? "-" : "") + s; };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const effDay = (x) => (x.off < 0 ? (x.confirmed ? null : 0) : x.off);
+const isLate = (x) => !x.confirmed && x.off < 0;
+const spentToday = () => state.gastos.reduce((s, g) => s + g.value, 0);
+const dayQuota = () => (PREVISTO * MONTH_DAYS - SPENT_BEFORE) / DAYS_LEFT;
+const leftToday = () => Math.max(0, dayQuota() - spentToday());
+const color = (s) => (s < 0 ? "red" : s < LIMITE ? "yellow" : "green");
+const diaryOf = (i) => (i === 0 && spentToday() > 0 ? spentToday() : PREVISTO);
+function projection() {
+  let saldo = BASE; const days = [];
+  for (let i = 0; i < WINDOW; i++) {
+    const list = items.filter((x) => effDay(x) === i);
+    list.forEach((x) => { saldo += x.type === "entrada" ? x.value : -x.value; });
+    saldo -= diaryOf(i);
+    days.push({ i, list, diary: diaryOf(i), saldo, color: color(saldo) });
+  }
+  return days;
+}
+function performance() {
+  const nov = items.filter((x) => x.off <= 24 || x.orig <= 24);
+  const net = nov.reduce((s, x) => s + (x.type === "entrada" ? x.value : -x.value), 0);
+  return net - SPENT_BEFORE - spentToday() - (DAYS_LEFT - 1) * PREVISTO;
+}
+const lowest = (days) => days.slice(0, 30).reduce((a, b) => (b.saldo < a.saldo ? b : a));
+const fmtDay = (i) => { const d = dateAt(i); return i === 0 ? "Hoje" : i === 1 ? "Amanhã" : d.toLocaleDateString("pt-BR", { weekday: "short", day: "2-digit", month: "short" }).replace(/\./g, ""); };
+const monthName = (i) => dateAt(i).toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+// Shared fragments
+const lancRow = (x) => `<div class="lanc">
+  <button class="chk ${x.confirmed ? "on" : ""}" data-act="check" data-id="${x.id}" aria-label="Confirmar ${esc(x.name)}" aria-pressed="${x.confirmed}">${x.confirmed ? "✓" : ""}</button>
+  <div class="nm">${esc(x.name)}<div class="tag ${isLate(x) ? "late" : ""}">${isLate(x) ? "Atrasado" : x.confirmed ? "Confirmado" : "Previsto"}</div></div>
+  <div class="val ${x.type === "entrada" ? "in" : ""}">${x.type === "entrada" ? "+" : "−"}${money(x.value)}</div></div>`;
+const diaryRow = (d) => `<div class="lanc"><div class="nm">Diário<div class="tag">${d.i === 0 && spentToday() > 0 ? "Gasto real" : "Previsto"}</div></div><div class="val">−${money(d.diary)}</div></div>`;
+const demo = `<div class="demo">Protótipo com dados inventados. Hoje é 6 de novembro de 2026.</div>`;
+
+// Variant A: summary on top, every day below as an expandable timeline, add via floating button
+function variantA(days) {
+  let rows = "", lastMonth = null;
+  days.forEach((d) => {
+    const m = dateAt(d.i).getMonth();
+    if (lastMonth !== null && m !== lastMonth) rows += `<div class="month">${monthName(d.i)}</div>`;
+    lastMonth = m;
+    const open = state.openDay === d.i;
+    rows += `<button class="tl-day ${d.i === 0 ? "first" : ""}" data-act="open" data-i="${d.i}" aria-expanded="${open}">
+      <span class="dot s-${d.color}"></span>
+      <span class="tl-d">${fmtDay(d.i)}${d.list.length ? `<span class="tag"> · ${d.list.length} lançamento${d.list.length > 1 ? "s" : ""}</span>` : ""}</span>
+      <span class="val s-${d.color}">${money(d.saldo)}</span></button>`;
+    if (open) rows += `<div class="tl-open">${d.list.map(lancRow).join("")}${diaryRow(d)}</div>`;
+  });
+  return `${demo}
+  <div class="stack"><div class="label">Disponível hoje</div><div class="big">${money(leftToday())}</div>
+  <div class="label">Gastou ${money(spentToday())} de ${money(dayQuota())} · Diário previsto ${money(PREVISTO)}</div></div>
+  <div class="card row"><div><div class="label">Saldo hoje</div><div class="mid s-${days[0].color}">${money(days[0].saldo)}</div></div>
+  <div style="text-align:right"><div class="label">Performance do mês</div><div class="mid">${money(performance())}</div></div></div>
+  <div class="tl">${rows}</div>
+  <button class="fab" data-act="sheet" aria-label="Adicionar">+</button>`;
+}
+
+// Variant B: the screen is today's to-do. Spending input is always visible; the future lives in a second tab, by week
+function variantB(days) {
+  const low = lowest(days);
+  const tabs = `<nav class="tabs"><button class="${state.tab === "hoje" ? "on" : ""}" data-act="tab" data-tab="hoje">Hoje</button><button class="${state.tab === "prox" ? "on" : ""}" data-act="tab" data-tab="prox">Próximos</button></nav>`;
+  if (state.tab === "prox") {
+    const max = Math.max(...days.map((d) => Math.abs(d.saldo)));
+    let weeks = "";
+    for (let w = 0; w < 8; w++) {
+      const part = days.slice(w * 7, w * 7 + 7);
+      const minDay = part.reduce((a, b) => (b.saldo < a.saldo ? b : a));
+      const launches = part.flatMap((d) => d.list);
+      weeks += `<div class="card wk s-${minDay.color}">
+        <div class="row"><span style="color:var(--fg);font-weight:600">${fmtDay(part[0].i)} a ${fmtDay(part[6].i)}</span></div>
+        <div class="row"><span class="label">Menor saldo</span><span class="val">${money(minDay.saldo)}</span></div>
+        <div class="bar"><i style="width:${Math.max(2, (Math.abs(minDay.saldo) / max) * 100)}%"></i></div>
+        <div class="tag">${launches.length ? launches.map((x) => esc(x.name)).join(", ") : "Só diário"}</div></div>`;
+    }
+    return `${demo}<div class="sec">Próximas semanas</div>${weeks}${tabs}`;
+  }
+  const todo = days.slice(0, 5).flatMap((d) => d.list);
+  return `${demo}
+  <div class="alert b-${low.color}">${low.saldo < 0 ? `Vai faltar ${money(-low.saldo)} em ${fmtDay(low.i)}` : `Menor saldo: ${money(low.saldo)} em ${fmtDay(low.i)}`}</div>
+  <div class="two"><div class="card"><div class="label">Disponível hoje</div><div class="mid">${money(leftToday())}</div></div>
+  <div class="card"><div class="label">Saldo hoje</div><div class="mid s-${days[0].color}">${money(days[0].saldo)}</div></div></div>
+  <form class="card stack" id="quick-b"><div class="sec">Registrar gasto do diário</div>
+    <input class="field bigin" id="q-value" inputmode="decimal" placeholder="R$ 0,00" aria-label="Valor">
+    <input class="field" id="q-desc" placeholder="O que foi? (opcional)" aria-label="Descrição">
+    <button class="btn" type="submit">Registrar</button>
+    <button class="btn btn-out" type="button" data-act="sheet">Outro lançamento</button></form>
+  <div class="card"><div class="sec">Para confirmar</div>${todo.length ? todo.map(lancRow).join("") : `<div class="tag">Nada nos próximos dias.</div>`}</div>
+  <div class="card"><div class="row"><span class="sec">Gastos de hoje</span><span class="val">${money(spentToday())}</span></div>
+  ${state.gastos.map((g) => `<div class="lanc"><div class="nm">${esc(g.desc || "Gasto")}</div><div class="val">−${money(g.value)}</div></div>`).join("")}</div>${tabs}`;
+}
+
+// Variant C: the month is the main object. Colored calendar, selected day below, one-tap amounts
+function variantC(days) {
+  const base = new Date(2026, 10 + state.calMonth, 1);
+  const total = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+  let cells = ["D", "S", "T", "Q", "Q", "S", "S"].map((w) => `<div class="wd">${w}</div>`).join("");
+  for (let k = 0; k < base.getDay(); k++) cells += "<div></div>";
+  for (let n = 1; n <= total; n++) {
+    const i = Math.round((new Date(base.getFullYear(), base.getMonth(), n) - TODAY) / MS_DAY);
+    const d = days[i];
+    if (!d) { cells += `<button class="cell none" disabled aria-label="Dia ${n}">${n}<small>&nbsp;</small></button>`; continue; }
+    cells += `<button class="cell b-${d.color} ${state.selDay === i ? "sel" : ""}" data-act="sel" data-i="${i}" aria-label="Dia ${n}, saldo ${money(d.saldo)}">${n}<small>${short(d.saldo)}</small></button>`;
+  }
+  const sel = days[state.selDay];
+  return `${demo}
+  <div class="strip"><div class="card"><div class="label">Disponível</div><div class="v">${money(leftToday())}</div></div>
+  <div class="card"><div class="label">Saldo hoje</div><div class="v s-${days[0].color}">${money(days[0].saldo)}</div></div>
+  <div class="card"><div class="label">Performance</div><div class="v">${money(performance())}</div></div></div>
+  <div class="chips"><button class="chip" data-act="quick" data-v="10">+R$ 10</button><button class="chip" data-act="quick" data-v="20">+R$ 20</button><button class="chip" data-act="quick" data-v="50">+R$ 50</button><button class="chip" data-act="sheet">Outro</button></div>
+  <div class="row"><button class="btn btn-out" data-act="cal" data-d="-1" aria-label="Mês anterior" ${state.calMonth === 0 ? "disabled" : ""}>‹</button><span class="sec">${base.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</span><button class="btn btn-out" data-act="cal" data-d="1" aria-label="Próximo mês" ${state.calMonth === 2 ? "disabled" : ""}>›</button></div>
+  <div class="cal">${cells}</div>
+  <div class="card"><div class="row"><span class="sec">${fmtDay(sel.i)}</span><span class="val s-${sel.color}">${money(sel.saldo)}</span></div>${sel.list.map(lancRow).join("")}${diaryRow(sel)}</div>`;
+}
+
+// Variant D: header and floating button from A, calendar and selected day from C, switchable views
+function dayPanel(d) {
+  const gastos = d.i === 0 && state.gastos.length ? `<div class="tag" style="margin-top:8px">Gastos de hoje</div>${state.gastos.map((g) => `<div class="lanc"><div class="nm">${esc(g.desc || "Gasto")}</div><div class="val">−${money(g.value)}</div></div>`).join("")}` : "";
+  return `<div class="card"><div class="row"><span class="sec">${fmtDay(d.i)}</span><span class="val s-${d.color}">${money(d.saldo)}</span></div>${d.list.map(lancRow).join("")}${diaryRow(d)}${gastos}</div>`;
+}
+function monthView(days) {
+  const base = new Date(2026, 10 + state.calMonth, 1);
+  const total = new Date(base.getFullYear(), base.getMonth() + 1, 0).getDate();
+  let cells = ["D", "S", "T", "Q", "Q", "S", "S"].map((w) => `<div class="wd">${w}</div>`).join("");
+  for (let k = 0; k < base.getDay(); k++) cells += "<div></div>";
+  for (let n = 1; n <= total; n++) {
+    const i = Math.round((new Date(base.getFullYear(), base.getMonth(), n) - TODAY) / MS_DAY);
+    const d = days[i];
+    if (!d) { cells += `<button class="cell none" disabled aria-label="Dia ${n}">${n}<small>&nbsp;</small></button>`; continue; }
+    cells += `<button class="cell b-${d.color} ${state.selDay === i ? "sel" : ""}" data-act="sel" data-i="${i}" aria-label="Dia ${n}, saldo ${money(d.saldo)}">${n}<small>${short(d.saldo)}</small></button>`;
+  }
+  return `<div class="row navrow"><button class="btn btn-out" data-act="cal" data-d="-1" aria-label="Mês anterior" ${state.calMonth === 0 ? "disabled" : ""}>‹</button><span class="sec">${base.toLocaleDateString("pt-BR", { month: "long", year: "numeric" })}</span><button class="btn btn-out" data-act="cal" data-d="1" aria-label="Próximo mês" ${state.calMonth === 2 ? "disabled" : ""}>›</button></div><div class="cal">${cells}</div>${dayPanel(days[state.selDay])}`;
+}
+function weekView(days) {
+  const start = state.selDay - dateAt(state.selDay).getDay();
+  let cells = "";
+  for (let i = start; i < start + 7; i++) {
+    const dt = dateAt(i), d = days[i], wd = dt.toLocaleDateString("pt-BR", { weekday: "narrow" }).toUpperCase();
+    if (!d) { cells += `<button class="wcell none" disabled><small>${wd}</small>${dt.getDate()}</button>`; continue; }
+    cells += `<button class="wcell b-${d.color} ${state.selDay === i ? "sel" : ""}" data-act="sel" data-i="${i}" aria-label="${fmtDay(i)}, saldo ${money(d.saldo)}"><small>${wd}</small>${dt.getDate()}<small>${short(d.saldo)}</small><span class="pips">${d.list.map(() => "<i></i>").join("")}</span></button>`;
+  }
+  return `<div class="row navrow"><button class="btn btn-out" data-act="move" data-d="-7" aria-label="Semana anterior">‹</button><span class="sec">Semana de ${dateAt(start).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }).replace(/\./g, "")}</span><button class="btn btn-out" data-act="move" data-d="7" aria-label="Próxima semana">›</button></div><div class="week">${cells}</div>${dayPanel(days[state.selDay])}`;
+}
+function dayView(days) {
+  return `<div class="row navrow"><button class="btn btn-out" data-act="move" data-d="-1" aria-label="Dia anterior">‹</button><span class="sec">${dateAt(state.selDay).toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" })}</span><button class="btn btn-out" data-act="move" data-d="1" aria-label="Próximo dia">›</button></div>${dayPanel(days[state.selDay])}`;
+}
+function listView(days) {
+  let rows = "", lastMonth = null;
+  days.forEach((d) => {
+    const m = dateAt(d.i).getMonth();
+    if (lastMonth !== null && m !== lastMonth) rows += `<div class="month">${monthName(d.i)}</div>`;
+    lastMonth = m;
+    const open = state.openDay === d.i;
+    rows += `<button class="tl-day ${d.i === 0 ? "first" : ""}" data-act="open" data-i="${d.i}" aria-expanded="${open}"><span class="dot s-${d.color}"></span><span class="tl-d">${fmtDay(d.i)}${d.list.length ? `<span class="tag"> · ${d.list.length} lançamento${d.list.length > 1 ? "s" : ""}</span>` : ""}</span><span class="val s-${d.color}">${money(d.saldo)}</span></button>`;
+    if (open) rows += `<div class="tl-open">${d.list.map(lancRow).join("")}${diaryRow(d)}</div>`;
+  });
+  return `<div class="tl">${rows}</div>`;
+}
+function variantD(days) {
+  const low = lowest(days);
+  const views = { mes: ["Mês", monthView], semana: ["Semana", weekView], dia: ["Dia", dayView], lista: ["Lista", listView] };
+  return `${demo}
+  <div class="stack"><div class="label">Disponível hoje</div><div class="big">${money(leftToday())}</div>
+  <div class="label">Gastou ${money(spentToday())} de ${money(dayQuota())} · Diário previsto ${money(PREVISTO)}</div></div>
+  <div class="card row"><div><div class="label">Saldo hoje</div><div class="mid s-${days[0].color}">${money(days[0].saldo)}</div></div>
+  <div style="text-align:right"><div class="label">Performance do mês</div><div class="mid">${money(performance())}</div></div></div>
+  <div class="alert b-${low.color}">${low.saldo < 0 ? `Vai faltar ${money(-low.saldo)} em ${fmtDay(low.i)}` : `Menor saldo: ${money(low.saldo)} em ${fmtDay(low.i)}`}</div>
+  <div class="seg seg-3">${Object.entries(views).map(([k, v]) => `<button class="${state.calView === k ? "on" : ""}" data-act="view" data-v="${k}" aria-pressed="${state.calView === k}">${v[0]}</button>`).join("")}</div>
+  ${views[state.calView][1](days)}
+  <button class="fab" data-act="sheet" aria-label="Adicionar">+</button>`;
+}
+
+function addEntry(type, value, desc) {
+  if (!(value > 0)) return;
+  if (type === "Diário") state.gastos.push({ desc, value });
+  else if (type === "Cartão") { const f = items.find((x) => x.type === "fatura" && !x.confirmed && x.off >= 0); if (f) f.value += value; }
+  else items.push({ id: items.length, name: desc || type, type: type === "Entrada" ? "entrada" : "saida", value, off: 0, confirmed: true });
+}
+const parseMoney = (s) => parseFloat(String(s).replace(/[^\d,.]/g, "").replace(/\.(?=\d{3})/g, "").replace(",", "."));
+
+function render() {
+  const days = projection();
+  const view = { a: variantA, b: variantB, c: variantC, d: variantD }[state.variant](days);
+  document.getElementById("app").innerHTML = view;
+  const keys = Object.keys(VARIANTS);
+  const snapshot = { variante: state.variant, disponivelHoje: leftToday(), cotaDoDia: dayQuota(), gastoHoje: spentToday(), diarioPrevisto: PREVISTO, limiteDeAtencao: LIMITE, saldoHoje: days[0].saldo, menorSaldo30Dias: lowest(days).saldo, performance: performance(), pendentes: items.filter((x) => !x.confirmed && x.off < 16).map((x) => `${x.name} (dia ${x.off})`) };
+  document.getElementById("overlay").innerHTML = `
+  ${state.sheet ? `<div class="scrim" data-act="close"><form class="sheet" id="sheet-form" data-stop="1">
+    <div class="row"><span class="sec">Novo lançamento</span><button type="button" class="btn btn-out" data-act="close">Fechar</button></div>
+    <div class="seg">${["Diário", "Saída", "Entrada", "Cartão"].map((t) => `<button type="button" class="${state.sheetType === t ? "on" : ""}" data-act="type" data-t="${t}">${t}</button>`).join("")}</div>
+    <input class="field bigin" id="s-value" inputmode="decimal" placeholder="R$ 0,00" aria-label="Valor">
+    <input class="field" id="s-desc" placeholder="Descrição" aria-label="Descrição">
+    <button class="btn" type="submit">Salvar</button></form></div>` : ""}
+  ${state.showState ? `<div class="state">${esc(JSON.stringify(snapshot, null, 2))}</div>` : ""}
+  <div class="switch"><button data-act="prev" aria-label="Versão anterior">←</button><span>${state.variant.toUpperCase()} · ${VARIANTS[state.variant]}</span><button data-act="next" aria-label="Próxima versão">→</button><button data-act="state" aria-label="Mostrar estado">{ }</button></div>`;
+  void keys;
+}
+function setVariant(v) { state.variant = v; try { location.hash = v; } catch (e) {} render(); }
+function cycle(dir) { const k = Object.keys(VARIANTS); setVariant(k[(k.indexOf(state.variant) + dir + k.length) % k.length]); }
+
+document.addEventListener("click", (e) => {
+  const t = e.target.closest("[data-act]");
+  if (!t) return;
+  const a = t.dataset.act;
+  if (a === "close" && e.target.closest("[data-stop]") && e.target !== t) return;
+  if (a === "close" && t.classList.contains("scrim") && e.target !== t) return;
+  if (a === "check") {
+    const x = items.find((i) => i.id === Number(t.dataset.id));
+    if (!x.confirmed) { x.orig = x.off; x.off = 0; x.confirmed = true; }
+    else if (x.orig !== undefined) { x.off = x.orig; delete x.orig; x.confirmed = false; }
+  }
+  if (a === "open") state.openDay = state.openDay === Number(t.dataset.i) ? -1 : Number(t.dataset.i);
+  if (a === "sel") state.selDay = Number(t.dataset.i);
+  if (a === "view") state.calView = t.dataset.v;
+  if (a === "move") {
+    state.selDay = Math.min(WINDOW - 1, Math.max(0, state.selDay + Number(t.dataset.d)));
+    const s = dateAt(state.selDay);
+    state.calMonth = s.getFullYear() * 12 + s.getMonth() - (2026 * 12 + 10);
+  }
+  if (a === "cal") state.calMonth += Number(t.dataset.d);
+  if (a === "tab") state.tab = t.dataset.tab;
+  if (a === "sheet") state.sheet = true;
+  if (a === "close") state.sheet = false;
+  if (a === "type") state.sheetType = t.dataset.t;
+  if (a === "quick") addEntry("Diário", Number(t.dataset.v), "Gasto rápido");
+  if (a === "state") state.showState = !state.showState;
+  if (a === "prev") return cycle(-1);
+  if (a === "next") return cycle(1);
+  render();
+});
+document.addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (e.target.id === "quick-b") addEntry("Diário", parseMoney(document.getElementById("q-value").value), document.getElementById("q-desc").value);
+  if (e.target.id === "sheet-form") { addEntry(state.sheetType, parseMoney(document.getElementById("s-value").value), document.getElementById("s-desc").value); state.sheet = false; }
+  render();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.target.matches && e.target.matches("input, textarea, [contenteditable]")) return;
+  if (e.key === "ArrowLeft") cycle(-1);
+  if (e.key === "ArrowRight") cycle(1);
+});
+window.addEventListener("hashchange", () => { const h = location.hash.slice(1); if (VARIANTS[h] && h !== state.variant) { state.variant = h; render(); } });
+const initial = location.hash.slice(1);
+if (VARIANTS[initial]) state.variant = initial;
+render();
+</script>
